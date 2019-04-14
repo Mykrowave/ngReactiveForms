@@ -19,12 +19,20 @@ export class CustomerComponent implements OnInit {
       firstName: new FormControl(),
       lastName: new FormControl(),
       email: new FormControl(),
-      saveCatalog: new FormControl(true)
+      sendCatalog: new FormControl(true)
     });
   }
 
   save() {
     console.log(this.customerForm);
     console.log('Saved: ' + JSON.stringify(this.customerForm.value));
+  }
+
+  populateTestData(): void {
+    this.customerForm.patchValue({
+      firstName: 'mikey',
+      lastName: 'parker',
+      email: 'mikeparkercrescerance.com'
+    });
   }
 }

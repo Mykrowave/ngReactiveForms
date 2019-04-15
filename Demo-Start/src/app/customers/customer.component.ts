@@ -12,6 +12,8 @@ export class CustomerComponent implements OnInit {
   customer = new Customer();
   customerForm: FormGroup;
 
+  emailValidationMessage: string;
+
   constructor(private fb: FormBuilder) { }
 
   ngOnInit() {
@@ -32,6 +34,25 @@ export class CustomerComponent implements OnInit {
     this.customerForm.get('sendNotification').valueChanges.subscribe(changesValue => {
       this.sendNotificationRadioValueChanges(changesValue);
     });
+
+    const emailControl = this.customerForm.get('emailGroup.email');
+    emailControl.statusChanges.subscribe(statusChange => {
+      this.setMessage(emailControl);
+    });
+  }
+
+  setMessage(control: AbstractControl): void {
+    this.emailValidationMessage = '';
+    if ((control.touched || control.dirty) && control.errors) {
+      console.log(Object.keys(control.errors).map(key => {
+        if (key === 'email') {
+          return 'You must enter a valid Email';
+        }
+        if (key === 'required') {
+          return 'You must enter an Email';
+        }
+      }));
+    }
   }
 
   save() {

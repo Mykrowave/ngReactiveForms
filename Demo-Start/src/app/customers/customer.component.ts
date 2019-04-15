@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 
 import { Customer } from './customer';
-import { FormGroup, FormControl, FormBuilder, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
+import { FormGroup, FormControl, FormBuilder, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 
 @Component({
   selector: 'app-customer',
@@ -18,11 +18,14 @@ export class CustomerComponent implements OnInit {
     this.customerForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.minLength(3)]],
       lastName: ['', [Validators.required, Validators.maxLength(50)]],
-      email: ['', [Validators.required, Validators.email]],
+      emailGroup: this.fb.group({
+        email: ['', [Validators.required, Validators.email]],
+        emailConfirm: ['', [Validators.required, Validators.email]]
+      }, { validator: inputValueSame('email', 'emailConfirm')}),
       phone: '',
-      rating: [null, [rangeWholeNumber]],
+      rating: [null, [rangeWholeNumber(1, 5)]],
       sendNotification: 'email',
-      sendCatalog: true,
+      sendCatalog: true
     });
   }
 
@@ -54,13 +57,30 @@ export class CustomerComponent implements OnInit {
 }
 
 
-  export function rangeWholeNumber(control: AbstractControl): {[key: string]: boolean} | null {
-    if (control.value > 0 &&
-        control.value < 6 && Math.round(+control.value) === +control.value) {
+export function rangeWholeNumber(min: number, max: number): ValidatorFn {
 
+  return (control: AbstractControl): {[key: string]: boolean} | null => {
+    if (control.value >= min &&
+        control.value <= max &&
+        Math.round(+control.value) === +control.value) {
     } else {
       return {'range': true};
     }
-
     return null;
-  }
+  };
+
+}
+
+export function inputValueSame(formControlName1: string, formControlName2: string): ValidatorFn {
+  return (control: AbstractControl): {[key: string]: boolean} | null => {
+    if ( (control.get(formControlName1).value === control.get(formControlName2).value) ||
+         (control.get(formControlName1).pristine || control.get(formControlName2).pristine) ) {
+
+    } else {
+      return {'inputValueSame': true};
+    }
+    return null;
+  };
+}
+
+

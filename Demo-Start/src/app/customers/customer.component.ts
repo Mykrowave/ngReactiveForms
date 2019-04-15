@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { NgForm } from '@angular/forms';
 
 import { Customer } from './customer';
+import { FormGroup, FormControl, FormBuilder, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 
 @Component({
   selector: 'app-customer',
@@ -10,14 +10,77 @@ import { Customer } from './customer';
 })
 export class CustomerComponent implements OnInit {
   customer = new Customer();
+  customerForm: FormGroup;
 
-  constructor() { }
+  constructor(private fb: FormBuilder) { }
 
   ngOnInit() {
+    this.customerForm = this.fb.group({
+      firstName: ['', [Validators.required, Validators.minLength(3)]],
+      lastName: ['', [Validators.required, Validators.maxLength(50)]],
+      emailGroup: this.fb.group({
+        email: ['', [Validators.required, Validators.email]],
+        emailConfirm: ['', [Validators.required, Validators.email]]
+      }, { validator: inputValueSame('email', 'emailConfirm')}),
+      phone: '',
+      rating: [null, [rangeWholeNumber(1, 5)]],
+      sendNotification: 'email',
+      sendCatalog: true
+    });
   }
 
-  save(customerForm: NgForm) {
-    console.log(customerForm.form);
-    console.log('Saved: ' + JSON.stringify(customerForm.value));
+  save() {
+    console.log(this.customerForm);
+    console.log('Saved: ' + JSON.stringify(this.customerForm.value));
+  }
+
+  populateTestData(): void {
+    this.customerForm.patchValue({
+      firstName: 'mikey',
+      lastName: 'parker',
+      email: 'mikeparkercrescerance.com'
+    });
+  }
+
+  sendNotificationRadioClicked(): void {
+    console.log('value: ' + this.customerForm.get('sendNotification').value);
+
+    if (this.customerForm.get('sendNotification').value === 'text') {
+      this.customerForm.get('phone').setValidators(Validators.required);
+    } else {
+      this.customerForm.get('phone').clearValidators();
+    }
+
+    this.customerForm.get('phone').updateValueAndValidity();
+
   }
 }
+
+
+export function rangeWholeNumber(min: number, max: number): ValidatorFn {
+
+  return (control: AbstractControl): {[key: string]: boolean} | null => {
+    if (control.value >= min &&
+        control.value <= max &&
+        Math.round(+control.value) === +control.value) {
+    } else {
+      return {'range': true};
+    }
+    return null;
+  };
+
+}
+
+export function inputValueSame(formControlName1: string, formControlName2: string): ValidatorFn {
+  return (control: AbstractControl): {[key: string]: boolean} | null => {
+    if ( (control.get(formControlName1).value === control.get(formControlName2).value) ||
+         (control.get(formControlName1).pristine || control.get(formControlName2).pristine) ) {
+
+    } else {
+      return {'inputValueSame': true};
+    }
+    return null;
+  };
+}
+
+

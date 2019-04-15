@@ -6,7 +6,7 @@
   <div class="card-body">
     <form novalidate
           (ngSubmit)="save()"
-          [formGroup]="customerForm">
+          [formGroup]="customerForm" autocomplete="off">
 
       <div class="form-group row mb-2">
         <label class="col-md-2 col-form-label"
@@ -63,14 +63,9 @@
                    type="email"
                    placeholder="Email (required)"
                    formControlName="email"
-                   [ngClass]="{'is-invalid': (customerForm.get('emailGroup.email').touched || customerForm.get('emailGroup.email').dirty) && !customerForm.get('emailGroup.email').valid }" />
+                   [ngClass]="{'is-invalid': emailValidationMessage }" />
             <span class="invalid-feedback">
-              <span *ngIf="customerForm.get('emailGroup.email').errors?.required">
-                Please enter your email address.
-              </span>
-              <span *ngIf="customerForm.get('emailGroup.email').errors?.email">
-                Please enter a valid email address.
-              </span>
+              {{emailValidationMessage}}
             </span>
           </div>
         </div>

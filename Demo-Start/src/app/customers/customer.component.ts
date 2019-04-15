@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-
+import { debounceTime } from 'rxjs/operators';
 import { Customer } from './customer';
 import { FormGroup, FormControl, FormBuilder, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 
@@ -36,22 +36,26 @@ export class CustomerComponent implements OnInit {
     });
 
     const emailControl = this.customerForm.get('emailGroup.email');
-    emailControl.statusChanges.subscribe(statusChange => {
-      this.setMessage(emailControl);
+    emailControl.valueChanges
+      .pipe( debounceTime(500) )
+      .subscribe(() => {
+        this.setMessage(emailControl);
     });
   }
 
+  private errorMessageResolver(key: string): string {
+    switch (key) {
+      case 'email': return 'You must enter a valid Email';
+      case 'required': return 'You must enter an Email';
+    }
+    return 'Error!';
+  }
   setMessage(control: AbstractControl): void {
     this.emailValidationMessage = '';
     if ((control.touched || control.dirty) && control.errors) {
-      console.log(Object.keys(control.errors).map(key => {
-        if (key === 'email') {
-          return 'You must enter a valid Email';
-        }
-        if (key === 'required') {
-          return 'You must enter an Email';
-        }
-      }));
+      Object.keys(control.errors).map(key => {
+          this.emailValidationMessage += this.errorMessageResolver(key);
+        });
     }
   }
 

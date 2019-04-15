@@ -15,17 +15,22 @@ export class CustomerComponent implements OnInit {
   constructor(private fb: FormBuilder) { }
 
   ngOnInit() {
+
     this.customerForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.minLength(3)]],
       lastName: ['', [Validators.required, Validators.maxLength(50)]],
       emailGroup: this.fb.group({
         email: ['', [Validators.required, Validators.email]],
-        emailConfirm: ['', [Validators.required, Validators.email]]
+        emailConfirm: ['', Validators.required]
       }, { validator: inputValueSame('email', 'emailConfirm')}),
       phone: '',
-      rating: [null, [rangeWholeNumber(1, 5)]],
+      rating: [null, rangeWholeNumber(1, 5)],
       sendNotification: 'email',
       sendCatalog: true
+    });
+
+    this.customerForm.get('sendNotification').valueChanges.subscribe(changesValue => {
+      this.sendNotificationRadioValueChanges(changesValue);
     });
   }
 
@@ -42,19 +47,17 @@ export class CustomerComponent implements OnInit {
     });
   }
 
-  sendNotificationRadioClicked(): void {
-    console.log('value: ' + this.customerForm.get('sendNotification').value);
-
-    if (this.customerForm.get('sendNotification').value === 'text') {
+  sendNotificationRadioValueChanges(newValue: string): void {
+    if (newValue === 'text') {
       this.customerForm.get('phone').setValidators(Validators.required);
     } else {
       this.customerForm.get('phone').clearValidators();
     }
 
     this.customerForm.get('phone').updateValueAndValidity();
-
   }
 }
+
 
 
 export function rangeWholeNumber(min: number, max: number): ValidatorFn {
@@ -73,11 +76,14 @@ export function rangeWholeNumber(min: number, max: number): ValidatorFn {
 
 export function inputValueSame(formControlName1: string, formControlName2: string): ValidatorFn {
   return (control: AbstractControl): {[key: string]: boolean} | null => {
-    if ( (control.get(formControlName1).value === control.get(formControlName2).value) ||
-         (control.get(formControlName1).pristine || control.get(formControlName2).pristine) ) {
+
+    if ( control.get(formControlName1).value === control.get(formControlName2).value ||
+         control.get(formControlName1).pristine ||
+         control.get(formControlName2).pristine) {
 
     } else {
-      return {'inputValueSame': true};
+
+      return {'matching': true};
     }
     return null;
   };

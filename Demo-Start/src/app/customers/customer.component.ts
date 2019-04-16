@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { debounceTime } from 'rxjs/operators';
 import { Customer } from './customer';
-import { FormGroup, FormControl, FormBuilder, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
+import { FormGroup, FormControl, FormBuilder, Validators, AbstractControl, ValidationErrors, ValidatorFn, FormArray } from '@angular/forms';
 
 @Component({
   selector: 'app-customer',
@@ -14,6 +14,9 @@ export class CustomerComponent implements OnInit {
 
   emailValidationMessage: string;
 
+  get addressFormArray(): FormArray {
+    return this.customerForm.get('addresses') as FormArray;
+  }
   constructor(private fb: FormBuilder) { }
 
   ngOnInit() {
@@ -28,7 +31,8 @@ export class CustomerComponent implements OnInit {
       phone: '',
       rating: [null, rangeWholeNumber(1, 5)],
       sendNotification: 'email',
-      sendCatalog: true
+      sendCatalog: true,
+      addresses: this.fb.array([this.buildAddressGroup()])
     });
 
     this.customerForm.get('sendNotification').valueChanges.subscribe(changesValue => {
@@ -80,6 +84,21 @@ export class CustomerComponent implements OnInit {
     }
 
     this.customerForm.get('phone').updateValueAndValidity();
+  }
+
+  buildAddressGroup(): FormGroup {
+    return this.fb.group({
+      addressType: 'home',
+        street1: '',
+        street2: '',
+        city: '',
+        state: '',
+        zip: ''
+    });
+  }
+
+  addAddressGroup(): void {
+    this.addressFormArray.push(this.buildAddressGroup());
   }
 }
 
